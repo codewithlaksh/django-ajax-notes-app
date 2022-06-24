@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -94,3 +95,13 @@ def delete_note(request):
 
     else:
         return JsonResponse({"BadRequest": {"status": 400, "requestType": request.method}, "message": "{} method is not allowed on this url!".format(request.method)})
+
+@api_view(['GET'])
+def search(request):
+    if not request.GET.get('query'):
+        return redirect('/api/')
+    else:
+        query = request.GET.get('query')
+        notes = Note.objects.filter(title__icontains=query).all()
+        serializer = NoteSerializer(notes, many=True)
+        return Response({'notes': serializer.data})

@@ -210,3 +210,57 @@ function delete_note(note_uuid){
         console.error(error);
     }
 }
+
+// Search functionality
+let search_query = document.getElementById('search_query');
+search_query.addEventListener('keyup', (e) => {
+    e.preventDefault();
+    if (e.target.value.length == 0){
+        get_notes();
+    }
+    else{
+        fetch(`/api/search?query=${e.target.value}`)
+        .then(response => response.json())
+        .then(data => {
+            const notesDiv = document.getElementById("notes");
+            let notes = data.notes;
+            let output = "";
+            if (notes.length === 0) {
+                notesDiv.innerHTML = "<p>No search results available for your query.</p>";
+            }
+            else{
+                for(i in notes){
+                    output += `<div class="col-md-4 px-0">
+                        <div class="card noteCard" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">${notes[i].title}</h5>
+                                <p class="card-text">${notes[i].description}</p>
+                                <button class="edit btn btn-sm btn-outline-dark" id="${notes[i].note_uuid}"><i class="fa-solid fa-pencil"></i> Edit</button>
+                                <button class="delete btn btn-sm btn-dark" id="${notes[i].note_uuid}"><i class="fa-solid fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                notesDiv.innerHTML = output;
+    
+                for(i in notes){
+                    let editBtn = document.getElementsByClassName('edit')[i];
+                    let deleteBtn = document.getElementsByClassName('delete')[i];
+    
+                    editBtn.addEventListener('click', (e) => {
+                        let btnID = e.target.id;
+                        get_note(btnID);
+                    })
+                    deleteBtn.addEventListener('click', (e) => {
+                        if (window.confirm("Are you sure, you want to delete this note ?")){
+                            delete_note(e.target.id);
+                        }
+                        else{
+                            return false;
+                        }
+                    })
+                }
+            }
+        })
+    }
+})
